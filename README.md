@@ -2,65 +2,73 @@
 step by step upload
 
 
-## Part 1: Install Linux (via WSL)
 
-# Step 1 — Open PowerShell as Administrator
-Right-click the Start menu → "Windows PowerShell (Admin)" or "Terminal (Admin)".
-Why: Installing WSL changes system-level Windows features, so it needs admin rights.
+## Part 1: Enable WSL and Install Ubuntu
 
-# Step 2 —Install WSL and Ubuntu
-wsl --install
+# Step 1
+— Open PowerShell as Administrator
+Right-click the Start menu → "Windows PowerShell (Admin)"
+Why: Enabling WSL changes system-level settings, so it requires administrator rights.
 
-Why: This single command enables the WSL feature, downloads the Linux kernel, and installs Ubuntu (the default distro) automatically.
+#Step 2 
+Install Ubuntu 22.04
 
-# Step 3 — Restart your computer
-Why: Windows needs to finish enabling the virtualization features before Linux can run.
+wsl --install -d Ubuntu-22.04
 
-# Step 4 — Launch Ubuntu and set up your user account
-Open "Ubuntu" from the Start menu, then create a username and password when prompted.
-Why: This is your Linux user account, separate from your Windows account — it's needed to run commands with sudo.
+Why: This command enables WSL and downloads Ubuntu 22.04 specifically (instead of the default version), because ROS2 Humble requires exactly this Ubuntu version.
 
-# Step 5 — Update Ubuntu's package list
+After this, restart your computer, then open Ubuntu and set up a username and password.
 
-sudo apt update && sudo apt upgrade -y
+## Part 2: Install ROS2 Humble
 
-Why: This makes sure your Linux system has the latest package information before you install anything else, avoiding version conflicts.
+# Step 3 — Update the system
 
-## Part 2: Install ROS
+sudo apt update && sudo apt upgrade
 
-# Step 6 — Set up your ROS repository sources
+Why: This updates the package list and installed programs before adding anything new, to avoid compatibility issues.
 
-sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+# Step 4 — Install essential tools
 
-Why: By default, Ubuntu doesn't know where to find ROS packages — this tells it to look at the official ROS package server.
+sudo apt install software-properties-common curl
 
-# Step 7 — Add the ROS key
+Why: These are helper tools — curl is used to download files from the internet, and software-properties-common lets Ubuntu handle additional software sources (not just the default ones).
 
-sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+# Step 5 — Download the ROS authentication key
 
-Why: This key verifies that the packages you download actually come from the official ROS source and haven't been tampered with.
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 
-# Step 8 — Update package list again
+Why: This key verifies that the packages we're about to download actually come from the official ROS source and haven't been tampered with.
+
+# Step 6 — Add the ROS2 repository
+
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+Why: By default, Ubuntu doesn't know where to find ROS2 packages — this line adds the official ROS2 repository address for Ubuntu 22.04 (codename "jammy").
+
+# Step 7 — Update the package list again
 
 sudo apt update
 
-Why: Now that Ubuntu knows about the ROS repository, this refreshes the list so ROS packages become visible/installable.
+Why: Now that the ROS2 repository has been added, this refreshes the list so the system can see the available ROS2 packages.
 
-## Step 9 — Install ROS (full desktop version)
+# Step 8 — Install ROS2 Humble
 
-sudo apt install ros-noetic-desktop-full
+sudo apt install ros-humble-desktop
 
-Why: This installs ROS itself, plus common tools like simulators and visualization software, in one go.
+Why: This installs ROS2 itself along with its core tools (simulation, visualization, etc.) in a single command.
 
-# Step 10 — Set up environment variables
+Part 3: Run and Verify ROS2
 
-echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+# Step 9 — Automatically link ROS2 to the terminal
+
+echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 
-Why: This tells your terminal where ROS is installed every time you open it, so you can run ROS commands without extra setup.
+Why: This makes the terminal automatically recognize ROS2 commands every time you open it, instead of typing the command manually each time.
 
-# Step 11 — Verify installation
+# Step 10 — Verify the installation
 
-roscore
+ros2 --version
+echo $ROS_DISTRO
 
-Why: This starts the ROS master process — if it runs without errors, your installation was successful.
+Why: The first command confirms ROS2 is installed and working, and the second prints the distro name (it should say "humble") as proof everything is set up correctly.
